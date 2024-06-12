@@ -1,0 +1,22 @@
+<!-- myapp/templates/myapp/weather_detail.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather Detail</title>
+</head>
+<body>
+    <h1>Weather Detail for {{ weather.formatted_date }}</h1>
+    <p><strong>Summary:</strong> {{ weather.summary }}</p>
+    <p><strong>Precipitation Type:</strong> {{ weather.precip_type }}</p>
+    <p><strong>Temperature (C):</strong> {{ weather.temperature_c }}</p>
+    <p><strong>Apparent Temperature (C):</strong> {{ weather.apparent_temperature_c }}</p>
+    <p><strong>Humidity:</strong> {{ weather.humidity }}</p>
+    <p><strong>Wind Speed (km/h):</strong> {{ weather.wind_speed_kmh }}</p>
+    <p><strong>Wind Bearing (degrees):</strong> {{ weather.wind_bearing_degrees }}</p>
+    <p><strong>Visibility (km):</strong> {{ weather.visibility_km }}</p>
+    <p><strong>Loud Cover:</strong> {{ weather.loud_cover }}</p>
+    <p><strong>Pressure (millibars):</strong> {{ weather.pressure_millibars }}</p>
+    <p><strong>Daily Summary:</strong> {{ weather.daily_summary }}</p>
+    <a href="{% url 'weather_list' %}">Back to Weather List</a>
+</body>
+</html>

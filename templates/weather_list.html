@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Weather Data{% endblock %}
+
+{% block content %}
+    <h1>Weather Data</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Summary</th>
+          <th>Precip Type</th>
+          <th>Temperature (C)</th>
+          <th>Apparent Temperature (C)</th>
+          <th>Humidity</th>
+          <th>Wind Speed (km/h)</th>
+          <th>Wind Bearing (degrees)</th>
+          <th>Visibility (km)</th>
+          <th>Cloud Cover</th>
+          <th>Pressure (millibars)</th>
+          <th>Daily Summary</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for weather in weather_data %}
+        <tr>
+          <td data-label="Date">{{ weather.formatted_date }}</td>
+          <td data-label="Summary">{{ weather.summary }}</td>
+          <td data-label="Precip Type">{{ weather.precip_type }}</td>
+          <td data-label="Temperature (C)">{{ weather.temperature_c }}</td>
+          <td data-label="Apparent Temperature (C)">{{ weather.apparent_temperature_c }}</td>
+          <td data-label="Humidity">{{ weather.humidity }}</td>
+          <td data-label="Wind Speed (km/h)">{{ weather.wind_speed_kmh }}</td>
+          <td data-label="Wind Bearing (degrees)">{{ weather.wind_bearing_degrees }}</td>
+          <td data-label="Visibility (km)">{{ weather.visibility_km }}</td>
+          <td data-label="Loud Cover">{{ weather.loud_cover }}</td>
+          <td data-label="Pressure (millibars)">{{ weather.pressure_millibars }}</td>
+          <td data-label="Daily Summary">{{ weather.daily_summary }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+{% endblock %}
+

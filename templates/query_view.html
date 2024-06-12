@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% load static %}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Query Chatbot</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f2f5;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+      .container {
+        background: #eff0f6;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        width: 90%;
+        max-width: 800px;
+        display: flex;
+        justify-content: space-between;
+      }
+      .sidebar {
+        flex: 1;
+        background: #d0d2d5;
+        border-right: 1px solid #ddd;
+        padding: 20px;
+        max-height: 600px;
+        overflow-y: auto;
+        border-radius: 20px 0 0 20px;
+        margin-right: 20px;
+      }
+      .main-content {
+        flex: 3;
+      }
+      h1 {
+        color: #333;
+        font-size: 24px;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .chat-box {
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 20px;
+        max-height: 400px;
+        overflow-y: auto;
+        background-color: #fff;
+        margin-bottom: 20px;
+      }
+      .message {
+        margin: 10px 0;
+        padding: 15px;
+        border-radius: 12px;
+        max-width: 75%;
+        word-wrap: break-word;
+      }
+      .user-message {
+        background-color: #007bff;
+        color: white;
+        align-self: flex-end;
+        margin-left: auto;
+      }
+      .history-item {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 10px;
+        cursor: pointer;
+      }
+      .sidebar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .sidebar h2 {
+        font-size: 18px;
+        margin-bottom: 10px;
+      }
+      .clear-history {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 0;
+      }
+      .clear-history button {
+        margin: 0;
+        padding: 5px 10px;
+        font-size: 12px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+      }
+      .input-form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .input-form input {
+        width: 100%;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        margin-bottom: 10px;
+        font-size: 16px;
+        outline: none;
+      }
+      .input-form button {
+        width: 100%;
+        padding: 15px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 16px;
+        outline: none;
+      }
+      .input-form button:hover {
+        background-color: #0056b3;
+      }
+      .sql-section {
+        margin-top: 20px;
+        border-top: 1px solid #ddd;
+        padding-top: 20px;
+      }
+      .sql-code {
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 12px;
+        overflow-x: auto;
+        font-family: monospace;
+      }
+      .results {
+        margin-top: 20px;
+      }
+      .results table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .results th,
+      .results td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+      .results th {
+        background-color: #f2f2f2;
+      }
+      .btn-group {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .btn {
+        flex: 1;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 12px;
+        transition: background-color 0.3s;
+        border: none;
+        cursor: pointer;
+      }
+      .btn:hover {
+        background-color: #0056b3;
+      }
+    </style>
+    <script src="{% static 'plotly/plotly-latest.min.js' %}"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar" id="history-sidebar">
+        <div class="sidebar-header">
+          <h2>Query History</h2>
+          <div class="clear-history">
+            <form
+              method="post"
+              action="{% url 'clear_history' %}"
+              id="clear-history-form"
+            >
+              {% csrf_token %}
+              <button type="submit" name="clear_history" class="btn">
+                Clear
+              </button>
+            </form>
+          </div>
+        </div>
+        {% for item in query_history %}
+        <div class="history-item">
+          <p><strong>Question:</strong> {{ item.question }}</p>
+          <p><strong>SQL:</strong> {{ item.sql_query }}</p>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="main-content">
+        <h1>Query Chatbot</h1>
+        <div class="chat-box" id="chat-box">
+          <!-- Chat messages will be appended here -->
+        </div>
+        <form method="post" class="input-form" id="query-form">
+          {% csrf_token %}
+          <input
+            type="text"
+            name="query"
+            id="query-input"
+            placeholder="Enter your query..."
+            required
+          />
+          <button type="submit">Send</button>
+        </form>
+        {% if query %}
+        <div class="sql-section">
+          <h2>SQL Query Generated:</h2>
+          <div class="sql-code">{{ query }}</div>
+        </div>
+        {% endif %} {% if results %}
+        <div class="results">
+          <h2>Results:</h2>
+          <table>
+            <thead>
+              <tr>
+                {% for column in results.0 %}
+                <th>{{ column }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in results %}
+              <tr>
+                {% for cell in row.values %}
+                <td>{{ cell }}</td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="btn-group">
+          <form method="post" action="">
+            {% csrf_token %}
+            <input type="hidden" name="query" value="{{ query }}" />
+            <button type="submit" name="csv" class="btn">Download CSV</button>
+            <button type="submit" name="word" class="btn">Download Word</button>
+            <button type="submit" name="ppt" class="btn">
+              Download PowerPoint
+            </button>
+            <button type="button" id="visualize-button" class="btn">
+              Visualize
+            </button>
+          </form>
+        </div>
+        <div id="chart"></div>
+        {% else %}
+        <p>No results found</p>
+        {% endif %}
+      </div>
+    </div>
+    <script>
+      document
+        .getElementById("query-form")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+          const input = document.getElementById("query-input");
+          const chatBox = document.getElementById("chat-box");
+          const historySidebar = document.getElementById("history-sidebar");
+          const userMessage = document.createElement("div");
+          const historyItem = document.createElement("div");
+
+          userMessage.className = "message user-message";
+          userMessage.textContent = input.value;
+          chatBox.appendChild(userMessage);
+
+          historyItem.className = "history-item";
+          historyItem.innerHTML = `<p><strong>Question:</strong> ${input.value}</p>`;
+          historySidebar.appendChild(historyItem);
+
+          chatBox.scrollTop = chatBox.scrollHeight;
+          this.submit();
+        });
+
+      document
+        .getElementById("visualize-button")
+        .addEventListener("click", function () {
+          const chartDiv = document.getElementById("chart");
+          const results = JSON.parse("{{ results_json|escapejs }}");
+
+          if (results.length === 0) {
+            chartDiv.innerHTML = "No results to display";
+            return;
+          }
+
+          const columnNames = Object.keys(results[0]);
+          const trace = {
+            x: results.map((row) => row[columnNames[0]]),
+            y: results.map((row) => row[columnNames[1]]),
+            type: "bar",
+          };
+          const layout = {
+            title: "Query Results",
+            xaxis: { title: columnNames[0] },
+            yaxis: { title: columnNames[1] },
+          };
+          Plotly.newPlot(chartDiv, [trace], layout);
+        });
+    </script>
+  </body>
+</html>
